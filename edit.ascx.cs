@@ -20,7 +20,8 @@ public partial class widgets_Foursquare_edit : WidgetEditBase
             StringDictionary settings = GetSettings();
             if (settings.ContainsKey("feedurl"))
             {
-                txtFoursquareFeedURL.Text = settings["feedurl"];
+                txtFoursquareKMLFeedURL.Text = settings["kmlfeedurl"];
+                txtFoursquareRSSFeedURL.Text = settings["rssfeedurl"];
                 txtAccountURL.Text = settings["accounturl"];
                 txtCheckIns.Text = settings["maxitems"];
                 txtPolling.Text = settings["pollinginterval"];
@@ -31,7 +32,8 @@ public partial class widgets_Foursquare_edit : WidgetEditBase
     public override void Save()
     {
         StringDictionary settings = GetSettings();
-        settings["feedurl"] = txtFoursquareFeedURL.Text;
+        settings["kmlfeedurl"] = txtFoursquareKMLFeedURL.Text;
+        settings["rssfeedurl"] = txtFoursquareRSSFeedURL.Text;
         settings["accounturl"] = txtAccountURL.Text;
         settings["maxitems"] = txtCheckIns.Text;
         settings["pollinginterval"] = txtPolling.Text;

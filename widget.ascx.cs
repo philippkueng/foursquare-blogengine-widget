@@ -24,6 +24,7 @@ public partial class widgets_Foursquare_widget : WidgetBase
 {
     private const string FOURSQUARE_SETTINGS_CACHE_KEY = "foursquare-settings";
     private const string FOURSQUARE_KML_FEED_CACHE_KEY = "foursquare-kml-feed";
+    private const string FOURSQUARE_RSS_FEED_CACHE_KEY = "foursquare-rss-feed";
 
     public string message = "";
     public override string Name
@@ -46,10 +47,6 @@ public partial class widgets_Foursquare_widget : WidgetBase
 
     public override void LoadWidget()
     {
-        //// Hier den Feed cachen...
-        //string feed = "http://feeds.foursquare.com/history/AIASJNH1WMBVW0LHHSYBS2Z4GQXEFRCZ.kml";
-        //XDocument doc = XDocument.Load(feed);
-        //BindFeed(doc, 3);
     }
 
     private void LoadCheckIns()
@@ -58,14 +55,32 @@ public partial class widgets_Foursquare_widget : WidgetBase
         try
         {
             XDocument kml_doc = (XDocument)HttpRuntime.Cache[FOURSQUARE_KML_FEED_CACHE_KEY];
-            if (kml_doc != null)
-                BindFeed(kml_doc, settings.maxitems);
+            XDocument rss_doc = (XDocument)HttpRuntime.Cache[FOURSQUARE_RSS_FEED_CACHE_KEY];
+
+            if (kml_doc != null && rss_doc != null)
+                BindFeed(kml_doc, rss_doc, settings.maxitems);
             else
             {
-                kml_doc = new XDocument();
-                kml_doc = XDocument.Load(settings.feedurl);
-                BindFeed(kml_doc, settings.maxitems);
+                // If older versions of the feeds are already written to disk load them first to reduce page loading time.
+                kml_doc = GetLastKMLFeed();
+                rss_doc = GetLastRSSFeed();
+
+                // There are no older versions, we have to load them from foursquare now
+                if (kml_doc == null || rss_doc == null)
+                {
+                    kml_doc = new XDocument();
+                    kml_doc = XDocument.Load(settings.kmlfeedurl); // put here some better error handling
+                    rss_doc = new XDocument();
+                    rss_doc = XDocument.Load(settings.rssfeedurl); // put here some better error handling
+                }
+
+                BindFeed(kml_doc, rss_doc, settings.maxitems);
                 HttpRuntime.Cache[FOURSQUARE_KML_FEED_CACHE_KEY] = kml_doc;
+                HttpRuntime.Cache[FOURSQUARE_RSS_FEED_CACHE_KEY] = rss_doc;
+                SaveLastKMLFeed(kml_doc);
+                SaveLastRSSFeed(rss_doc);
+
+
             }
         }
         catch (Exception ex)
@@ -76,22 +91,27 @@ public partial class widgets_Foursquare_widget : WidgetBase
 
     protected void repItems_ItemDataBound(object sender, RepeaterItemEventArgs e)
     {
-        Label text = (Label)e.Item.FindControl("lblItem");
+        HyperLink text = (HyperLink)e.Item.FindControl("lblItem");
         Label date = (Label)e.Item.FindControl("lblDate");
         CheckIn checkin = (CheckIn)e.Item.DataItem;
         text.Text = checkin.Title;
+        text.NavigateUrl = checkin.Url.ToString();
         date.Text = checkin.PubDate.ToString("MMMM d. HH:mm");
     }
 
-    private void BindFeed(XDocument kml_doc, int maxItems)
+    private void BindFeed(XDocument kml_doc, XDocument rss_doc, int maxItems)
     {
         List<CheckIn> checkins = new List<CheckIn>();
-        foreach (var item in kml_doc.Element("kml").Element("Folder").Elements("Placemark"))
+        // Here we mesh the two feeds, kml and rss together to get both the link to the venue and the coordinates.
+        foreach (var item in kml_doc.Element("kml").Element("Folder").Elements("Placemark").Take(maxItems))
         {
             CheckIn checkin = new CheckIn();
             checkin.Title = item.Element("name").Value.ToString();
             checkin.PubDate = DateTime.Parse(item.Element("published").Value.ToString(), CultureInfo.InvariantCulture);
-            checkin.Url = new Uri("http://example.com", UriKind.Absolute);
+            string correctURL = rss_doc.Element("rss").Element("channel").Elements("item").Where(t => (DateTime.Parse(t.Element("pubDate").Value.ToString(), CultureInfo.InvariantCulture) == checkin.PubDate)).Single().Element("link").Value.ToString();
+            checkin.Url = new Uri(correctURL, UriKind.Absolute);
+            // Read latitude and longitude aswell...
+
             checkins.Add(checkin);
         }
         repItems.DataSource = checkins;
@@ -107,9 +127,13 @@ public partial class widgets_Foursquare_widget : WidgetBase
         foursquareSettings = new FoursquareSettings();
         StringDictionary settings = GetSettings();
 
-        if (settings.ContainsKey("feedurl") && !string.IsNullOrEmpty(settings["feedurl"]))
+        if (settings.ContainsKey("kmlfeedurl") && !string.IsNullOrEmpty(settings["kmlfeedurl"]))
         {
-            foursquareSettings.feedurl = settings["feedurl"].ToString();
+            foursquareSettings.kmlfeedurl = settings["kmlfeedurl"].ToString();
+        }
+        if (settings.ContainsKey("rssfeedurl") && !string.IsNullOrEmpty(settings["rssfeedurl"]))
+        {
+            foursquareSettings.rssfeedurl = settings["rssfeedurl"].ToString();
         }
         if (settings.ContainsKey("accounturl") && !string.IsNullOrEmpty(settings["accounturl"]))
         {
@@ -131,7 +155,8 @@ public partial class widgets_Foursquare_widget : WidgetBase
 
     internal class FoursquareSettings
     {
-        public string feedurl;
+        public string kmlfeedurl;
+        public string rssfeedurl;
         public string accounturl;
         public int maxitems;
         public int pollinginterval;
@@ -142,11 +167,99 @@ public partial class widgets_Foursquare_widget : WidgetBase
         public string Title;
         public Uri Url;
         public DateTime PubDate;
+        //public double longitude;
+        //public double latitude;
 
         public int CompareTo(CheckIn other)
         {
             return other.PubDate.CompareTo(this.PubDate);
         }
+    }
+    private static string _lastKMLFeedDataFileName;
+    private static string GetLastKMLFeedDataFileName()
+    {
+        if (string.IsNullOrEmpty(_lastKMLFeedDataFileName))
+        {
+            _lastKMLFeedDataFileName = HostingEnvironment.MapPath(Path.Combine(BlogSettings.Instance.StorageLocation, "foursquare_kml_feeds.xml"));
+        }
+
+        return _lastKMLFeedDataFileName;
+    }
+    private static string _lastRSSFeedDataFileName;
+    private static string GetLastRSSFeedDataFileName()
+    {
+        if (string.IsNullOrEmpty(_lastRSSFeedDataFileName))
+        {
+            _lastRSSFeedDataFileName = HostingEnvironment.MapPath(Path.Combine(BlogSettings.Instance.StorageLocation, "foursquare_rss_feeds.xml"));
+        }
+
+        return _lastRSSFeedDataFileName;
+    }
+    private static void SaveLastKMLFeed(XDocument doc)
+    {
+        try
+        {
+            string file = GetLastKMLFeedDataFileName();
+            doc.Save(file);
+        }
+        catch (Exception ex)
+        {
+            //Utils.Log("Error saving last twitter feed load to data store.  Error: " + ex.Message);
+        }
+    }
+    private static void SaveLastRSSFeed(XDocument doc)
+    {
+        try
+        {
+            string file = GetLastRSSFeedDataFileName();
+            doc.Save(file);
+        }
+        catch (Exception ex)
+        {
+            //Utils.Log("Error saving last twitter feed load to data store.  Error: " + ex.Message);
+        }
+    }
+    private XDocument GetLastKMLFeed()
+    {
+        string file = GetLastKMLFeedDataFileName();
+        XDocument doc = null;
+
+        try
+        {
+            if (File.Exists(file))
+            {
+                doc = new XDocument();
+                doc = XDocument.Load(file);
+                //doc.Load(file);
+            }
+        }
+        catch (Exception ex)
+        {
+            //Utils.Log("Error retrieving last foursquare KML feed load from data store.  Error: " + ex.Message);
+        }
+
+        return doc;
+    }
+    private XDocument GetLastRSSFeed()
+    {
+        string file = GetLastRSSFeedDataFileName();
+        XDocument doc = null;
+
+        try
+        {
+            if (File.Exists(file))
+            {
+                doc = new XDocument();
+                doc = XDocument.Load(file);
+                //doc.Load(file);
+            }
+        }
+        catch (Exception ex)
+        {
+            //Utils.Log("Error retrieving last foursquare RSS feed load from data store.  Error: " + ex.Message);
+        }
+
+        return doc;
     }
 
 }

@@ -5,9 +5,13 @@
 <asp:TextBox runat="server" ID="txtAccountURL" Width="300" />
 <asp:RequiredFieldValidator runat="server" ControlToValidate="txtAccountURL" ErrorMessage="Please enter a URL" Display="Dynamic" /><br /><br />
 
-<label for="<%=txtFoursquareFeedURL %>">Your Foursquare KML Feed URL</label>
-<asp:TextBox runat="server" ID="txtFoursquareFeedURL" Width="300" />
-<asp:RequiredFieldValidator runat="server" ControlToValidate="txtFoursquareFeedURL" ErrorMessage="Please enter a URL" Display="Dynamic" /><br /><br />
+<label for="<%=txtFoursquareKMLFeedURL %>">Your Foursquare KML Feed URL</label>
+<asp:TextBox runat="server" ID="txtFoursquareKMLFeedURL" Width="300" />
+<asp:RequiredFieldValidator runat="server" ControlToValidate="txtFoursquareKMLFeedURL" ErrorMessage="Please enter a URL" Display="Dynamic" /><br /><br />
+
+<label for="<%=txtFoursquareRSSFeedURL %>">Your Foursquare RSS Feed URL</label>
+<asp:TextBox runat="server" ID="txtFoursquareRSSFeedURL" Width="300" />
+<asp:RequiredFieldValidator runat="server" ControlToValidate="txtFoursquareRSSFeedURL" ErrorMessage="Please enter a URL" Display="Dynamic" /><br /><br />
 
 <label for="<%txtCheckIns %>">Number of displayed Check-ins</label>
 <asp:TextBox runat="server" ID="txtCheckIns" Width="30" />

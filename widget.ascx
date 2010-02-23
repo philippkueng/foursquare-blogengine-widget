@@ -5,7 +5,8 @@
     <li>
         <img src="<%=BlogEngine.Core.Utils.RelativeWebRoot %>widgets/foursquare/foursquare.ico" alt="Foursquare" />
         <asp:Label runat="server" ID="lblDate" style="color:gray" /><br />
-        <asp:Label runat="server" ID="lblItem" />
+        <asp:HyperLink runat="server" ID="lblItem" />
+        <%--<asp:Label runat="server" ID="lblLink" />--%>
     </li>
   </ItemTemplate>
 </asp:Repeater>
