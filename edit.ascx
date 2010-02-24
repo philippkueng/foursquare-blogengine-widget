@@ -13,11 +13,11 @@
 <asp:TextBox runat="server" ID="txtFoursquareRSSFeedURL" Width="300" />
 <asp:RequiredFieldValidator runat="server" ControlToValidate="txtFoursquareRSSFeedURL" ErrorMessage="Please enter a URL" Display="Dynamic" /><br /><br />
 
-<label for="<%txtCheckIns %>">Number of displayed Check-ins</label>
+<label for="<%=txtCheckIns %>">Number of displayed Check-ins</label>
 <asp:TextBox runat="server" ID="txtCheckIns" Width="30" />
 <asp:RequiredFieldValidator runat="server" ControlToValidate="txtCheckIns" ErrorMessage="Please enter a number" Display="Dynamic" />
 <asp:CompareValidator runat="server" ControlToValidate="txtCheckIns" Type="Integer" Operator="DataTypeCheck" ErrorMessage="A real number please" /><br /><br />
 
-<label for="<%txtPolling %>">Polling Interval (#/minutes)</label>
+<label for="<%=txtPolling %>">Polling Interval (#/minutes)</label>
 <asp:TextBox runat="server" ID="txtPolling" Width="30" />
 <asp:CompareValidator runat="server" ControlToValidate="txtPolling" Type="Integer" Operator="DataTypeCheck" ErrorMessage="A real number please" /><br /><br />
