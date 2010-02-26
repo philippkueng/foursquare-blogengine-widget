@@ -2,11 +2,9 @@
 <ul>
 <asp:Repeater runat="server" ID="repItems" OnItemDataBound="repItems_ItemDataBound">
   <ItemTemplate>
-    <li>
-        <img src="<%=BlogEngine.Core.Utils.RelativeWebRoot %>widgets/foursquare/foursquare.ico" alt="Foursquare" />
+    <li style='padding-left: 20px; background: url(<%=BlogEngine.Core.Utils.RelativeWebRoot %>widgets/foursquare/foursquare.ico) 4px left no-repeat;' >
         <asp:Label runat="server" ID="lblDate" style="color:gray" /><br />
         <asp:HyperLink runat="server" ID="lblItem" />
-        <%--<asp:Label runat="server" ID="lblLink" />--%>
     </li>
   </ItemTemplate>
 </asp:Repeater>
