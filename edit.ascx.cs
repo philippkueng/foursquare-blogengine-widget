@@ -40,9 +40,6 @@ public partial class widgets_Foursquare_edit : WidgetEditBase
         settings["pollinginterval"] = txtPolling.Text;
         SaveSettings(settings);
 
-        //Don't need to clear Feed out of cache because when the Settings are cleared,
-        //the last modified date (i.e. TwitterSettings.LastModified) will reset to
-        //DateTime.MinValue and Twitter will be re-queried.
         HttpRuntime.Cache.Remove(FOURSQUARE_SETTINGS_CACHE_KEY);
     }
 }

@@ -36,7 +36,6 @@ public partial class widgets_Foursquare_widget : WidgetBase
     public override bool IsEditable
     {
         get { return true; }
-        //get { return false; }
     }
 
     protected void Page_Load(object sender, EventArgs e)
@@ -46,7 +45,7 @@ public partial class widgets_Foursquare_widget : WidgetBase
 
     public override void LoadWidget()
     {
-        //Title = "Foursquare";
+        Title = "Foursquare";
         if (!IsPostBack)
             LoadCheckIns();
     }
@@ -63,12 +62,6 @@ public partial class widgets_Foursquare_widget : WidgetBase
 
                 if (kml_doc != null && rss_doc != null && !(DateTime.Now > settings.lastModified.AddMinutes(settings.pollinginterval)))
                 {
-                    // When was the last polling interval?
-                    //if (DateTime.Now > settings.LastModified.AddMinutes(settings.PollingInterval))
-                    //{
-                    //    settings.LastModified = DateTime.Now;
-                    //    BeginGetFeed(settings.FeedUrl);
-                    //}
                     BindFeed(kml_doc, rss_doc, settings.maxitems);
                 }
                 else
@@ -127,7 +120,7 @@ public partial class widgets_Foursquare_widget : WidgetBase
             checkin.PubDate = DateTime.Parse(item.Element("published").Value.ToString(), CultureInfo.InvariantCulture);
             string correctURL = rss_doc.Element("rss").Element("channel").Elements("item").Where(t => (DateTime.Parse(t.Element("pubDate").Value.ToString(), CultureInfo.InvariantCulture) == checkin.PubDate)).Single().Element("link").Value.ToString();
             checkin.Url = new Uri(correctURL, UriKind.Absolute);
-            // Read latitude and longitude aswell...
+            // Read latitude and longitude...
 
             checkins.Add(checkin);
         }
@@ -250,7 +243,6 @@ public partial class widgets_Foursquare_widget : WidgetBase
             {
                 doc = new XDocument();
                 doc = XDocument.Load(file);
-                //doc.Load(file);
             }
         }
         catch (Exception ex)
@@ -271,7 +263,6 @@ public partial class widgets_Foursquare_widget : WidgetBase
             {
                 doc = new XDocument();
                 doc = XDocument.Load(file);
-                //doc.Load(file);
             }
         }
         catch (Exception ex)
