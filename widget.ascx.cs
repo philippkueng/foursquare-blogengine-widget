@@ -27,6 +27,10 @@ public partial class widgets_Foursquare_widget : WidgetBase
     private const string FOURSQUARE_RSS_FEED_CACHE_KEY = "foursquare-rss-feed";
 
     public string message = "";
+    public string latArray = "";
+    public string lonArray = "";
+    public string TitleArray = "";
+    public string DescriptionArray = "";
 
     public override string Name
     {
@@ -104,26 +108,43 @@ public partial class widgets_Foursquare_widget : WidgetBase
         HyperLink text = (HyperLink)e.Item.FindControl("lblItem");
         Label date = (Label)e.Item.FindControl("lblDate");
         CheckIn checkin = (CheckIn)e.Item.DataItem;
+        HtmlInputHidden lat = (HtmlInputHidden)e.Item.FindControl("lat");
+        HtmlInputHidden lon = (HtmlInputHidden)e.Item.FindControl("lon");
         text.Text = checkin.Title;
         text.NavigateUrl = checkin.Url.ToString();
         date.Text = checkin.PubDate.ToString("MMMM d. HH:mm");
+        
     }
 
     private void BindFeed(XDocument kml_doc, XDocument rss_doc, int maxItems)
     {
         List<CheckIn> checkins = new List<CheckIn>();
         // Here we mesh the two feeds, kml and rss together to get both the link to the venue and the coordinates.
+        latArray = "[";
+        lonArray = "[";
+        TitleArray = "[";
+        DescriptionArray = "[";
         foreach (var item in kml_doc.Element("kml").Element("Folder").Elements("Placemark").Take(maxItems))
         {
             CheckIn checkin = new CheckIn();
             checkin.Title = item.Element("name").Value.ToString();
             checkin.PubDate = DateTime.Parse(item.Element("published").Value.ToString(), CultureInfo.InvariantCulture);
+            TitleArray += "\"" + checkin.Title + "\",";
+            DescriptionArray += "\"" + checkin.PubDate + "\",";
             string correctURL = rss_doc.Element("rss").Element("channel").Elements("item").Where(t => (DateTime.Parse(t.Element("pubDate").Value.ToString(), CultureInfo.InvariantCulture) == checkin.PubDate)).Single().Element("link").Value.ToString();
             checkin.Url = new Uri(correctURL, UriKind.Absolute);
+            
             // Read latitude and longitude...
+            string[] coordinates = item.Element("Point").Element("coordinates").Value.ToString().Split(',');
+            latArray += "'" + coordinates[1] + "',";
+            lonArray += "'" + coordinates[0] + "',";
 
             checkins.Add(checkin);
         }
+        latArray += "]";
+        lonArray += "]";
+        TitleArray += "]";
+        DescriptionArray += "]";
         repItems.DataSource = checkins;
         repItems.DataBind();
     }
@@ -180,8 +201,8 @@ public partial class widgets_Foursquare_widget : WidgetBase
         public string Title;
         public Uri Url;
         public DateTime PubDate;
-        //public double longitude;
-        //public double latitude;
+        public string longitude;
+        public string latitude;
 
         public int CompareTo(CheckIn other)
         {
