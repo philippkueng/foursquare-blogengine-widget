@@ -59,6 +59,14 @@ public partial class widgets_Foursquare_widget : WidgetBase
         FoursquareSettings settings = GetFoursquareSettings();
         try
         {
+            if (settings.displayMap)
+            {
+                foursquareMap.Visible = true;
+                
+                myMap.Style.Add("width",settings.mapWidth.ToString() + "px");
+                myMap.Style.Add("height", settings.mapHeight.ToString() + "px");
+            }
+
             if (!string.IsNullOrEmpty(settings.kmlfeedurl) && !string.IsNullOrEmpty(settings.rssfeedurl))
             {
                 XDocument kml_doc = (XDocument)HttpRuntime.Cache[FOURSQUARE_KML_FEED_CACHE_KEY];
@@ -84,12 +92,11 @@ public partial class widgets_Foursquare_widget : WidgetBase
                     }
                     settings.lastModified = DateTime.Now;
                     BindFeed(kml_doc, rss_doc, settings.maxitems);
+
                     HttpRuntime.Cache[FOURSQUARE_KML_FEED_CACHE_KEY] = kml_doc;
                     HttpRuntime.Cache[FOURSQUARE_RSS_FEED_CACHE_KEY] = rss_doc;
                     SaveLastKMLFeed(kml_doc);
                     SaveLastRSSFeed(rss_doc);
-
-
                 }
             }
             else
@@ -174,11 +181,47 @@ public partial class widgets_Foursquare_widget : WidgetBase
         }
         if (settings.ContainsKey("maxitems") && !string.IsNullOrEmpty(settings["maxitems"]))
         {
-            foursquareSettings.maxitems = int.Parse(settings["maxitems"].ToString());
+            try
+            {
+                foursquareSettings.maxitems = int.Parse(settings["maxitems"].ToString());
+            }
+            catch
+            {
+                foursquareSettings.maxitems = 5;
+            }
         }
         if (settings.ContainsKey("pollinginterval") && !string.IsNullOrEmpty(settings["pollinginterval"]))
         {
             foursquareSettings.pollinginterval = int.Parse(settings["pollinginterval"].ToString());
+        }
+        if (settings.ContainsKey("displaymap") && !string.IsNullOrEmpty(settings["displaymap"]))
+        {
+            if(settings["displaymap"].ToLower().Equals("true"))
+                foursquareSettings.displayMap = true;
+            else
+                foursquareSettings.displayMap = false;
+        }
+        if (settings.ContainsKey("mapwidth") && !string.IsNullOrEmpty(settings["mapwidth"]))
+        {
+            try
+            {
+                foursquareSettings.mapWidth = int.Parse(settings["mapwidth"].ToString());
+            }
+            catch
+            {
+                foursquareSettings.mapWidth = 242;
+            }
+        }
+        if (settings.ContainsKey("mapheight") && !string.IsNullOrEmpty(settings["mapheight"]))
+        {
+            try
+            {
+                foursquareSettings.mapHeight = int.Parse(settings["mapheight"].ToString());
+            }
+            catch
+            {
+                foursquareSettings.mapHeight = 200;
+            }
         }
 
         HttpRuntime.Cache[FOURSQUARE_SETTINGS_CACHE_KEY] = foursquareSettings;
@@ -194,6 +237,9 @@ public partial class widgets_Foursquare_widget : WidgetBase
         public int maxitems;
         public int pollinginterval;
         public DateTime lastModified;
+        public int mapWidth;
+        public int mapHeight;
+        public bool displayMap;
     }
 
     private struct CheckIn : IComparable<CheckIn>
@@ -238,7 +284,7 @@ public partial class widgets_Foursquare_widget : WidgetBase
         }
         catch (Exception ex)
         {
-            Utils.Log("Error saving last twitter feed load to data store.  Error: " + ex.Message);
+            //Utils.Log("Error saving last twitter feed load to data store.  Error: " + ex.Message);
         }
     }
     private static void SaveLastRSSFeed(XDocument doc)
@@ -250,7 +296,7 @@ public partial class widgets_Foursquare_widget : WidgetBase
         }
         catch (Exception ex)
         {
-            Utils.Log("Error saving last twitter feed load to data store.  Error: " + ex.Message);
+            //Utils.Log("Error saving last twitter feed load to data store.  Error: " + ex.Message);
         }
     }
     private XDocument GetLastKMLFeed()
@@ -268,7 +314,7 @@ public partial class widgets_Foursquare_widget : WidgetBase
         }
         catch (Exception ex)
         {
-            Utils.Log("Error retrieving last foursquare KML feed load from data store.  Error: " + ex.Message);
+            //Utils.Log("Error retrieving last foursquare KML feed load from data store.  Error: " + ex.Message);
         }
 
         return doc;
@@ -288,7 +334,7 @@ public partial class widgets_Foursquare_widget : WidgetBase
         }
         catch (Exception ex)
         {
-            Utils.Log("Error retrieving last foursquare RSS feed load from data store.  Error: " + ex.Message);
+            //Utils.Log("Error retrieving last foursquare RSS feed load from data store.  Error: " + ex.Message);
         }
 
         return doc;

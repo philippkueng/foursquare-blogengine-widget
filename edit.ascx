@@ -21,3 +21,16 @@
 <label for="<%=txtPolling %>">Polling Interval (#/minutes)</label>
 <asp:TextBox runat="server" ID="txtPolling" Width="30" />
 <asp:CompareValidator runat="server" ControlToValidate="txtPolling" Type="Integer" Operator="DataTypeCheck" ErrorMessage="A real number please" /><br /><br />
+
+<label for="<%=txtDisplayMap %>">Display you're last check-ins on a map</label>
+<asp:CheckBox runat="server" Width="30" ID="txtDisplayMap" /><br /><br />
+
+<label for="<%=txtMapWidth %>">Width of the map (pixel)</label>
+<asp:TextBox runat="server" ID="txtMapWidth" Width="30" />
+<asp:RequiredFieldValidator ID="RequiredFieldValidator1" runat="server" ControlToValidate="txtMapWidth" ErrorMessage="Please enter a number" Display="Dynamic" />
+<asp:CompareValidator ID="CompareValidator1" runat="server" ControlToValidate="txtMapWidth" Type="Integer" Operator="DataTypeCheck" ErrorMessage="A real number please" /><br /><br />
+
+<label for="<%=txtMapHeight %>">Height of the map (pixel)</label>
+<asp:TextBox runat="server" ID="txtMapHeight" Width="30" />
+<asp:RequiredFieldValidator ID="RequiredFieldValidator2" runat="server" ControlToValidate="txtMapHeight" ErrorMessage="Please enter a number" Display="Dynamic" />
+<asp:CompareValidator ID="CompareValidator2" runat="server" ControlToValidate="txtMapHeight" Type="Integer" Operator="DataTypeCheck" ErrorMessage="A real number please" /><br /><br />

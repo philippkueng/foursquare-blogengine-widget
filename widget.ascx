@@ -1,6 +1,8 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="widget.ascx.cs" Inherits="widgets_Foursquare_widget" %>
-     <script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2"></script>
-      <script type="text/javascript">
+     
+      <asp:PlaceHolder runat="server" ID="foursquareMap" Visible="false">
+          <script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2"></script>
+          <script type="text/javascript">
           var map = null;
 
           function AddPushpinWithGeoCoordinates(lat, lon, title, description) {
@@ -15,7 +17,7 @@
           }
           
           function GetMap() {
-              map = new VEMap('myMap');
+              map = new VEMap('<%=myMap.ClientID %>');
               map.HideDashboard();
               map.LoadMap();
               map.SetZoomLevel(12);
@@ -42,9 +44,10 @@
                   window.onload = GetMap;
               }
           }
-      </script>
-     
-      <div id='myMap' style="position:relative; width:242px; height: 200px;"></div>
+          </script>
+          <div id="myMap" runat="server" style="position: relative;">
+          </div>
+      </asp:PlaceHolder>
 <ul>
 <asp:Repeater runat="server" ID="repItems" OnItemDataBound="repItems_ItemDataBound">
   <ItemTemplate>
