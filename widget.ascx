@@ -3,6 +3,7 @@
       <asp:PlaceHolder runat="server" ID="foursquareMap" Visible="false">
           <script type="text/javascript" src="http://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=6.2"></script>
           <script type="text/javascript">
+          // <![CDATA[
           var map = null;
 
           function AddPushpinWithGeoCoordinates(lat, lon, title, description) {
@@ -32,7 +33,8 @@
 
           if (window.attachEvent) {
               window.attachEvent('onload', GetMap);
-          } else {
+          } 
+          else {
               if (window.onload) {
                   var curronload = window.onload;
                   var newonload = function() {
@@ -40,10 +42,12 @@
                       GetMap();
                   };
                   window.onload = newonload;
-              } else {
+              } 
+              else {
                   window.onload = GetMap;
               }
           }
+          // ]]>
           </script>
           <div id="myMap" runat="server" style="position: relative;">
           </div>
@@ -51,7 +55,8 @@
 <ul>
 <asp:Repeater runat="server" ID="repItems" OnItemDataBound="repItems_ItemDataBound">
   <ItemTemplate>
-    <li style='padding-left: 20px; background: url(<%=BlogEngine.Core.Utils.RelativeWebRoot %>widgets/foursquare/foursquare.ico) 4px left no-repeat;' >
+    <li>
+        <img src="<%=BlogEngine.Core.Utils.RelativeWebRoot %>widgets/Foursquare/foursquare.ico" alt="foursquare check-in" />
         <asp:Label runat="server" ID="lblDate" style="color:gray" /><br />
         <asp:HyperLink runat="server" ID="lblItem" />
     </li>
